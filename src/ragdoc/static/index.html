@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RAG Doc Assistant</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --panel: #ffffff; --text: #16181d; --muted: #5d6573; --line: #e3e6ec;
+    --accent: #3b5bdb; --accent-soft: #e8edff; --mark: #fff3bf; --ok: #2b8a3e; --warn: #c2410c;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f1115; --panel: #171a21; --text: #e8eaf0; --muted: #9aa3b2; --line: #272b35;
+      --accent: #7c9cff; --accent-soft: #1d2540; --mark: #4a3f12; --ok: #69db7c; --warn: #ffa94d;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 15px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  header { padding: 20px 24px; border-bottom: 1px solid var(--line); background: var(--panel);
+           display: flex; gap: 16px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+  h1 { font-size: 18px; margin: 0; }
+  .sub { color: var(--muted); font-size: 13px; }
+  .pill { font-size: 12px; padding: 3px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); }
+  main { max-width: 1100px; margin: 0 auto; padding: 24px 16px; display: grid; gap: 24px;
+         grid-template-columns: minmax(0, 1fr) 280px; }
+  @media (max-width: 860px) { main { grid-template-columns: 1fr; } }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 18px; }
+  form { display: flex; gap: 8px; flex-wrap: wrap; }
+  input[type=text] { flex: 1 1 300px; padding: 11px 14px; border-radius: 10px; border: 1px solid var(--line);
+                     background: var(--bg); color: var(--text); font: inherit; }
+  select, button { padding: 10px 14px; border-radius: 10px; border: 1px solid var(--line); font: inherit;
+                   background: var(--panel); color: var(--text); cursor: pointer; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+  button:disabled { opacity: .6; cursor: progress; }
+  .examples { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+  .examples button { font-size: 13px; padding: 5px 10px; color: var(--muted); }
+  .answer { font-size: 16px; margin: 0; white-space: pre-wrap; }
+  .answer sup a { color: var(--accent); text-decoration: none; font-weight: 600; padding: 0 1px; }
+  .meta { color: var(--muted); font-size: 12px; margin-top: 10px; }
+  .abstained { color: var(--warn); }
+  .source { border-top: 1px solid var(--line); padding: 12px 0; }
+  .source:first-child { border-top: 0; }
+  .source h3 { font-size: 14px; margin: 0 0 4px; display: flex; gap: 8px; align-items: baseline; }
+  .source .n { color: var(--accent); }
+  .source .scores { color: var(--muted); font-size: 12px; font-weight: 400; margin-left: auto; }
+  .source p { margin: 0; color: var(--muted); font-size: 14px; white-space: pre-wrap; }
+  .source.cited p { color: var(--text); }
+  mark { background: var(--mark); color: inherit; border-radius: 3px; padding: 0 2px; }
+  .source.flash { animation: flash 1.2s ease; }
+  @keyframes flash { from { background: var(--accent-soft); } to { background: transparent; } }
+  aside h2, section h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 10px; }
+  aside ul { list-style: none; padding: 0; margin: 0 0 16px; }
+  aside li { display: flex; justify-content: space-between; gap: 8px; padding: 6px 0; border-top: 1px solid var(--line); font-size: 14px; }
+  aside li span { color: var(--muted); font-size: 12px; white-space: nowrap; }
+  .stack { display: grid; gap: 16px; align-content: start; }
+  .error { color: var(--warn); }
+  label.upload { display: block; text-align: center; padding: 12px; border: 1px dashed var(--line);
+                 border-radius: 10px; color: var(--muted); cursor: pointer; font-size: 14px; }
+  label.upload input { display: none; }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>RAG Doc Assistant</h1>
+    <div class="sub">Answers grounded in your documents, with citations you can check.</div>
+  </div>
+  <span class="pill" id="status">connecting…</span>
+</header>
+
+<main>
+  <div class="stack">
+    <div class="card">
+      <form id="ask-form">
+        <input type="text" id="question" placeholder="Ask about the documents…" autocomplete="off" required>
+        <select id="mode" title="Retrieval mode">
+          <option value="hybrid">Hybrid</option>
+          <option value="bm25">BM25</option>
+          <option value="dense">Dense</option>
+        </select>
+        <button class="primary" id="ask-btn" type="submit">Ask</button>
+      </form>
+      <div class="examples" id="examples"></div>
+    </div>
+
+    <div class="card" id="answer-card" hidden>
+      <p class="answer" id="answer"></p>
+      <div class="meta" id="answer-meta"></div>
+    </div>
+
+    <section class="card" id="sources-card" hidden>
+      <h2>Retrieved sources</h2>
+      <div id="sources"></div>
+    </section>
+  </div>
+
+  <aside class="stack">
+    <div class="card">
+      <h2>Knowledge base</h2>
+      <ul id="docs"></ul>
+      <label class="upload">Add a .md, .txt or .pdf
+        <input type="file" id="upload" accept=".md,.markdown,.txt,.pdf">
+      </label>
+      <div class="meta" id="upload-msg"></div>
+    </div>
+  </aside>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const EXAMPLES = [
+  "How many vacation days do I get each year?",
+  "Am I allowed to ship to production on a Friday?",
+  "Who needs to sign off on a 2,000 dollar purchase?",
+  "What should I do if I get a phishing email?",
+];
+
+function escapeHtml(s) {
+  return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+function highlight(text, quotes) {
+  // Quotes may differ from the source in whitespace (wrapped lines), so match words loosely.
+  let html = escapeHtml(text);
+  for (const q of quotes) {
+    const words = escapeHtml(q).split(/\s+/).filter(Boolean);
+    if (words.join(" ").length <= 8) continue;
+    const pattern = words.map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("\\s+");
+    html = html.replace(new RegExp(pattern), (m) => `<mark>${m}</mark>`);
+  }
+  return html;
+}
+
+async function api(path, options = {}) {
+  const res = await fetch(path, options);
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(body.detail ? JSON.stringify(body.detail) : res.statusText);
+  return body;
+}
+
+async function refresh() {
+  const health = await api("/api/health");
+  $("status").textContent = `${health.generator === "claude" ? "Claude" : "Offline extractive"} · ${health.documents} docs · ${health.chunks} chunks`;
+  const docs = await api("/api/documents");
+  $("docs").innerHTML = docs.map((d) => `<li>${escapeHtml(d.title)}<span>${d.chunks} chunks</span></li>`).join("");
+}
+
+function render(data) {
+  const answer = escapeHtml(data.answer).replace(/\[(\d+)\]/g, (_, n) => `<sup><a href="#src-${n}" data-n="${n}">[${n}]</a></sup>`);
+  $("answer").innerHTML = answer;
+  $("answer").classList.toggle("abstained", data.abstained);
+  $("answer-meta").textContent = `${data.generator} · ${data.latency_ms} ms${data.abstained ? " · no supporting passage found" : ""}`;
+  const quotesBySource = {};
+  for (const c of data.citations) (quotesBySource[c.source] ||= []).push(c.quote);
+  $("sources").innerHTML = data.sources.map((s) => `
+    <div class="source ${quotesBySource[s.n] ? "cited" : ""}" id="src-${s.n}">
+      <h3><span class="n">[${s.n}]</span> ${escapeHtml(s.label)}
+        <span class="scores">bm25 ${s.bm25} · dense ${s.dense}</span></h3>
+      <p>${highlight(s.text, quotesBySource[s.n] || [])}</p>
+    </div>`).join("");
+  $("answer-card").hidden = false;
+  $("sources-card").hidden = false;
+}
+
+$("answer").addEventListener("click", (e) => {
+  const n = e.target.dataset && e.target.dataset.n;
+  if (!n) return;
+  const el = $(`src-${n}`);
+  el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash");
+});
+
+$("ask-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const question = $("question").value.trim();
+  if (!question) return;
+  $("ask-btn").disabled = true;
+  $("ask-btn").textContent = "Thinking…";
+  try {
+    render(await api("/api/ask", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question, mode: $("mode").value }),
+    }));
+  } catch (err) {
+    $("answer").innerHTML = `<span class="error">${escapeHtml(err.message)}</span>`;
+    $("answer-meta").textContent = "";
+    $("answer-card").hidden = false;
+  } finally {
+    $("ask-btn").disabled = false;
+    $("ask-btn").textContent = "Ask";
+  }
+});
+
+$("upload").addEventListener("change", async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const form = new FormData();
+  form.append("file", file);
+  $("upload-msg").textContent = "Indexing…";
+  try {
+    const res = await api("/api/documents", { method: "POST", body: form });
+    $("upload-msg").textContent = `Added “${res.title}”.`;
+    await refresh();
+  } catch (err) {
+    $("upload-msg").textContent = err.message;
+  }
+  e.target.value = "";
+});
+
+$("examples").innerHTML = EXAMPLES.map((q) => `<button type="button">${escapeHtml(q)}</button>`).join("");
+$("examples").addEventListener("click", (e) => {
+  if (e.target.tagName !== "BUTTON") return;
+  $("question").value = e.target.textContent;
+  $("ask-form").requestSubmit();
+});
+
+refresh().catch((err) => { $("status").textContent = "API unavailable"; console.error(err); });
+</script>
+</body>
+</html>

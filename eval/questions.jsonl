@@ -1,0 +1,34 @@
+{"question": "How many vacation days do I get each year?", "doc": "02-time-off", "evidence": "24 days of paid annual leave"}
+{"question": "Can I roll unused holiday over to next year?", "doc": "02-time-off", "evidence": "maximum of 5 unused days"}
+{"question": "How much notice do I need to give before taking a week off?", "doc": "02-time-off", "evidence": "at least two weeks in advance"}
+{"question": "When do I need a medical certificate for being ill?", "doc": "02-time-off", "evidence": "doctor's note is required"}
+{"question": "How long is maternity or paternity leave?", "doc": "02-time-off", "evidence": "16 weeks of fully paid parental leave"}
+{"question": "Which days am I expected to come into the office?", "doc": "03-remote-work", "evidence": "Tuesdays and Thursdays"}
+{"question": "What hours do I have to be online?", "doc": "03-remote-work", "evidence": "11:00 to 16:00"}
+{"question": "Is there money for buying a desk and chair for home?", "doc": "03-remote-work", "evidence": "one-time home office stipend of 500 USD"}
+{"question": "Can I work while travelling abroad, and for how long?", "doc": "03-remote-work", "evidence": "up to 30 days per calendar"}
+{"question": "What is the daily food allowance on an international business trip?", "doc": "04-expenses", "evidence": "100 USD"}
+{"question": "Will the company pay for drinks at dinner?", "doc": "04-expenses", "evidence": "Alcohol is not reimbursed"}
+{"question": "What is the deadline for filing an expense report?", "doc": "04-expenses", "evidence": "within 30 days of the purchase"}
+{"question": "Who needs to sign off on a 2,000 dollar purchase?", "doc": "04-expenses", "evidence": "approval from a director"}
+{"question": "Can I fly business class on long flights?", "doc": "04-expenses", "evidence": "premium economy"}
+{"question": "What should I do if I get a phishing email?", "doc": "05-security", "evidence": "within one hour"}
+{"question": "Which accounts require a hardware key for login?", "doc": "05-security", "evidence": "hardware security key is required"}
+{"question": "How are API keys and passwords classified?", "doc": "05-security", "evidence": "credentials, encryption keys and security reports"}
+{"question": "Can I keep client data on my own phone?", "doc": "05-security", "evidence": "must never be stored on personal devices"}
+{"question": "How big should a pull request be?", "doc": "06-code-review", "evidence": "fewer than 400 changed lines"}
+{"question": "How many reviewers must approve a change to a production service?", "doc": "06-code-review", "evidence": "need two approvals"}
+{"question": "How quickly am I expected to review a teammate's code?", "doc": "06-code-review", "evidence": "within one business day"}
+{"question": "How should I format my commit messages?", "doc": "06-code-review", "evidence": "Conventional Commits"}
+{"question": "Am I allowed to ship to production on a Friday?", "doc": "07-deployment", "evidence": "no\nproduction deploys on Fridays"}
+{"question": "What happens if the new version starts throwing errors during rollout?", "doc": "07-deployment", "evidence": "rolled back automatically"}
+{"question": "What percentage of traffic does a new release get first?", "doc": "07-deployment", "evidence": "5% of traffic"}
+{"question": "When should old feature toggles be cleaned up?", "doc": "07-deployment", "evidence": "within 60 days"}
+{"question": "How fast must on-call respond to a full outage?", "doc": "08-incident-response", "evidence": "within 5 minutes"}
+{"question": "How often is the status page updated during an incident?", "doc": "08-incident-response", "evidence": "every 30 minutes"}
+{"question": "When is the incident write-up due?", "doc": "08-incident-response", "evidence": "within 5 business days"}
+{"question": "How much can I spend on courses and books?", "doc": "09-learning", "evidence": "1,500 USD per year"}
+{"question": "Who pays if my conference talk gets accepted?", "doc": "09-learning", "evidence": "pays for your travel and ticket"}
+{"question": "What should I do in my first month with my buddy?", "doc": "01-onboarding", "evidence": "at least twice a week"}
+{"question": "How long is probation for new hires?", "doc": "01-onboarding", "evidence": "probation period is three months"}
+{"question": "What am I expected to achieve in my first 30 days?", "doc": "01-onboarding", "evidence": "ship one small"}
