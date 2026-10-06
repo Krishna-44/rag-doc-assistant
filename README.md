@@ -198,4 +198,4 @@ credentials. CI runs lint, tests and the retrieval benchmark on Python 3.10–3.
 
 ## License
 
-[MIT](LICENSE) © Krishna Goyal
+[MIT](LICENSE) © Krishna Gupta

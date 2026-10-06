@@ -9,7 +9,7 @@ description = "Retrieval-augmented question answering over your documents, with 
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
-authors = [{ name = "Krishna Goyal" }]
+authors = [{ name = "Krishna Gupta" }]
 keywords = ["rag", "retrieval", "llm", "claude", "bm25", "semantic-search", "fastapi"]
 classifiers = [
   "Programming Language :: Python :: 3",
